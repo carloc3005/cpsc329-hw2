@@ -17,9 +17,12 @@
     margin: 20px auto;
 }
 
-#SearchInput {
-    width: 400px;
-    height: 40px;
-    padding: 10px;
-    font-size: 1rem;
-}
+/* Search bar styling */
+#searchInput {
+    width: 200px;            /* Increase the width */
+    height: 25px;             /* Increase the height */
+    padding: 10px;            /* More internal spacing */
+    font-size: 1rem;        /* Increase font size for better readability */
+    box-sizing: border-box;   /* Ensures padding is included in the width */
+  }
+  
