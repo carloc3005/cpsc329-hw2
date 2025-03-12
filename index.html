@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movie Explorer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div>
+    <div class="title">
+      <h1>Movie Explorer</h1>
+    </div>
+
+    <div class="search" id="search">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Search for a movie..."
+      />
+      <select id="sortOptions">
+        <!-- Make this the default, disabled option -->
+        <option value="" disabled selected>Sort By</option>
+        <option value="releaseAsc">Release Date (Ascending)</option>
+        <option value="releaseDesc">Release Date (Descending)</option>
+        <option value="ratingAsc">Rating (Ascending)</option>
+        <option value="ratingDesc">Rating (Descending)</option>
+      </select>
+    </div>
+  </div>
+
+  <script src="index.js"></script>
+</body>
+</html>
+
