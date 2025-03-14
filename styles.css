@@ -13,28 +13,63 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin: 20px auto;
+    gap: 20px;
+    height: 100px;
+    background-color: gray;
 }
 
+#sortOptions {
+  height: 50px;   
+}
 
 #searchInput {
     width: 200px;           
-    height: 25px;            
+    height: 50px;            
     padding: 10px;            
     font-size: 1rem;        
-    box-sizing: border-box;   
+    box-sizing: border-box;
+    border-radius: 5px;
   }
   
-/* Grid container for movie cards */
 .card-container {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 20px;
     padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    font-family: sans-serif;
+  }
+  .card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
-  /* Card styling */
+  .card > img {
+    padding: 25px;
+    height: 350px;
+    border-radius: 40px;
+    object-fit: cover; 
+  }
+
+  .img-container {
+    width: 100%;
+    aspect-ratio: 16 / 9;  /* Modern browsers support this; if not, use a padding-bottom trick */
+    overflow: hidden;
+  }
+  
+  .card-content > h3 {
+    font-family: sans-serif;
+    font-size: 1.5rem;
+    font-style: bold;
+  }
+
   .card {
     background-color: #fff;
     border: 1px solid #ddd;
@@ -48,11 +83,6 @@
     transform: translateY(-5px);
   }
   
-  .card img {
-    width: 100%;
-    height: auto;
-  }
-  
   .card-content {
     padding: 15px;
   }
@@ -61,7 +91,6 @@
     margin-top: 0;
   }
   
-  /* Pagination styling */
   .pagination {
     display: flex;
     justify-content: center;
@@ -80,8 +109,4 @@
     font-size: 1rem;
   }
   
-  .pagination button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
   
