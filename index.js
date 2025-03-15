@@ -1,12 +1,14 @@
+// Global state
 let currentPage = 1;
 let totalMovies = 0;
 let totalPages = 1;
 let currentSearchQuery = "";
 let currentSortOption = "";
 
-const apiKey = '00c011cf8ae34863f2b8931d4ea1ba4b'; // My API key
+// TMDB API key
+const apiKey = '00c011cf8ae34863f2b8931d4ea1ba4b';
 
-// Define sort options in JS
+// Define available sort options
 const sortOptions = [
   { value: "releaseAsc", label: "Release Date (Ascending)", tmdbValue: "release_date.asc" },
   { value: "releaseDesc", label: "Release Date (Descending)", tmdbValue: "release_date.desc" },
@@ -14,11 +16,11 @@ const sortOptions = [
   { value: "ratingDesc", label: "Rating (Descending)", tmdbValue: "vote_average.desc" }
 ];
 
-// Populate the sort select element from the sortOptions array
+// Populate sort dropdown from sortOptions array
 function populateSortOptions() {
   const select = document.getElementById("sortOptions");
-  // Clear any existing options and add a placeholder
-  select.innerHTML = '<option value="" disabled selected>Sort By</option>';
+  // Default option is now clickable (not disabled)
+  select.innerHTML = '<option value="">Sort By</option>';
   sortOptions.forEach(option => {
     const opt = document.createElement("option");
     opt.value = option.value;
@@ -27,26 +29,33 @@ function populateSortOptions() {
   });
 }
 
-// Map the selected sort option to TMDB's sort_by parameter
+// Returns the TMDB sort_by parameter for the selected option
 function mapSortOption(optionValue) {
   const option = sortOptions.find(opt => opt.value === optionValue);
   return option ? option.tmdbValue : "";
 }
 
-// Load movies using either the search or discover endpoint
+// Fetch movies from TMDB API
 function loadMovies() {
   let url = "";
+  
   if (currentSearchQuery.trim() !== "") {
-    // Use search endpoint if there's a query
-    url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(currentSearchQuery)}&page=${currentPage}`;
+    // Search endpoint (exclude adult films)
+    url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(
+      currentSearchQuery
+    )}&include_adult=false&page=${currentPage}`;
   } else {
-    // Use discover endpoint with sort_by parameter (if selected)
-    url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&page=${currentPage}`;
+    // Discover endpoint (exclude adult films)
+    url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&include_adult=false&page=${currentPage}`;
     if (currentSortOption) {
       url += `&sort_by=${mapSortOption(currentSortOption)}`;
+      // If sorting by release date descending, limit to movies released up to 2025
+      if (currentSortOption === 'releaseDesc') {
+        url += "&primary_release_date.lte=2025-12-31";
+      }
     }
   }
-
+  
   fetch(url)
     .then(response => response.json())
     .then(data => {
@@ -55,18 +64,14 @@ function loadMovies() {
       
       let movies = data.results;
       
-      // If using search and a sort option is chosen, sort client side.
+      // For search results with a sort option, sort client-side.
       if (currentSearchQuery.trim() !== "" && currentSortOption) {
         movies.sort((a, b) => {
-          if (currentSortOption === 'ratingAsc') {
-            return a.vote_average - b.vote_average;
-          } else if (currentSortOption === 'ratingDesc') {
-            return b.vote_average - a.vote_average;
-          } else if (currentSortOption === 'releaseAsc') {
-            return new Date(a.release_date) - new Date(b.release_date);
-          } else if (currentSortOption === 'releaseDesc') {
-            return new Date(b.release_date) - new Date(a.release_date);
-          }
+          if (currentSortOption === 'ratingAsc') return a.vote_average - b.vote_average;
+          if (currentSortOption === 'ratingDesc') return b.vote_average - a.vote_average;
+          if (currentSortOption === 'releaseAsc') return new Date(a.release_date) - new Date(b.release_date);
+          if (currentSortOption === 'releaseDesc') return new Date(b.release_date) - new Date(a.release_date);
+          return 0;
         });
       }
       
@@ -79,25 +84,27 @@ function loadMovies() {
 // Render movies into the card container
 function renderMovies(movies) {
   const container = document.querySelector('.card-container');
-  container.innerHTML = movies.map(movie => {
-    const posterUrl = movie.poster_path 
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
-      : 'placeholder.jpg'; // Fallback image if needed
-
-    return `
-      <div class="card">
-        <img src="${posterUrl}" alt="${movie.title}" />
-        <div class="card-content">
-          <h3>${movie.title}</h3>
-          <p>Release Date: ${movie.release_date || "N/A"}</p>
-          <p>Rating: ${movie.vote_average || "N/A"}</p>
+  container.innerHTML = movies
+    .map(movie => {
+      const posterUrl = movie.poster_path
+        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+        : 'placeholder.jpg'; // Make sure this file exists in your project
+      
+      return `
+        <div class="card">
+          <img src="${posterUrl}" alt="${movie.title}" />
+          <div class="card-content">
+            <h3>${movie.title}</h3>
+            <p>Release Date: ${movie.release_date || "N/A"}</p>
+            <p>Rating: ${movie.vote_average || "N/A"}</p>
+          </div>
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    })
+    .join('');
 }
 
-// Update pagination controls UI
+// Update pagination UI controls
 function updatePagination() {
   document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
   document.getElementById('prevPage').disabled = currentPage === 1;
@@ -119,20 +126,29 @@ document.getElementById('nextPage').addEventListener('click', () => {
   }
 });
 
-// Listen for search input changes
+// Update search query as user types
 document.getElementById('searchInput').addEventListener('input', () => {
   currentSearchQuery = document.getElementById('searchInput').value;
-  currentPage = 1; // Reset to first page for new search queries
+  currentPage = 1;
   loadMovies();
 });
 
-// Listen for sort option changes
-document.getElementById('sortOptions').addEventListener('change', (event) => {
+// Update sort option when changed
+const sortDropdown = document.getElementById('sortOptions');
+sortDropdown.addEventListener('change', (event) => {
   currentSortOption = event.target.value;
-  currentPage = 1; // Reset to first page when sort order changes
+  currentPage = 1;
   loadMovies();
 });
 
-// Initialize sort options and load movies on page load
+// Reset sort when the sort dropdown is double-clicked
+sortDropdown.addEventListener('dblclick', () => {
+  currentSortOption = "";
+  sortDropdown.value = "";
+  currentPage = 1;
+  loadMovies();
+});
+
+// Initialize sort dropdown and fetch initial movies
 populateSortOptions();
 loadMovies();
